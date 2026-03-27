@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jsonschema-diagram"
+version = "0.1.0"
+description = "Python API, CLI, and Sphinx integration for the JSON Schema Diagram viewer"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "OpenAI Codex" }]
+dependencies = ["jinja2>=3.1"]
+
+[project.optional-dependencies]
+docs = ["sphinx>=8,<9"]
+
+[project.scripts]
+jsonschema-diagram = "jsonschema_diagram.cli:main"
+
+[tool.setuptools]
+packages = ["jsonschema_diagram", "jsonschema_diagram_sphinx", "backend"]

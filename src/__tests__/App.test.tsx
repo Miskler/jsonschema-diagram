@@ -36,22 +36,39 @@ vi.mock("../components/SchemaCanvas", () => ({
 
 describe("App", () => {
   beforeEach(() => {
+    window.localStorage.clear();
     window.__JSONSCHEMA_DIAGRAM_CONFIG__ = {
-      mode: "embed",
+      mode: "site",
       defaultSchema: sampleSchema,
     };
   });
 
   afterEach(() => {
     cleanup();
+    window.localStorage.clear();
     delete window.__JSONSCHEMA_DIAGRAM_CONFIG__;
   });
 
-  it("loads the embedded default schema", async () => {
+  it("loads the configured default schema in site mode", async () => {
     render(<App />);
 
     expect(await screen.findByDisplayValue(/"title": "Catalog Entry"/)).toBeInTheDocument();
     expect((await screen.findAllByText("Catalog Entry")).length).toBeGreaterThan(0);
+  });
+
+  it("renders embed mode without the source sidebar and honors default theme", async () => {
+    window.__JSONSCHEMA_DIAGRAM_CONFIG__ = {
+      mode: "embed",
+      defaultSchema: sampleSchema,
+      defaultTheme: "mono",
+    };
+
+    render(<App />);
+
+    expect(await screen.findByTestId("schema-canvas")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Raw schema")).not.toBeInTheDocument();
+    expect(screen.queryByText("Color preset")).not.toBeInTheDocument();
+    expect(document.documentElement.dataset.theme).toBe("mono");
   });
 
   it("applies manual schema and resets to default", async () => {

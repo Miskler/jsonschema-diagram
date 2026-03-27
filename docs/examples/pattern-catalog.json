@@ -1,0 +1,57 @@
+{
+  "title": "Pattern Catalog",
+  "type": "object",
+  "patternProperties": {
+    "^item-[0-9]+$": {
+      "type": "object",
+      "required": ["id", "state", "children"],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "state": {
+          "type": "string",
+          "enum": ["draft", "live", "archived"]
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/catalog-item"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "catalog-item": {
+      "title": "Catalog Item",
+      "type": "object",
+      "required": ["slug", "owner"],
+      "properties": {
+        "slug": {
+          "type": "string"
+        },
+        "owner": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "team": {
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "user": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

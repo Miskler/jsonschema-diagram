@@ -6,24 +6,38 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --bg: #090d13;
-  --bg-alt: #0d1320;
-  --bg-elevated: rgba(15, 21, 33, 0.86);
-  --bg-panel: rgba(11, 16, 25, 0.92);
-  --bg-card: rgba(21, 28, 43, 0.96);
-  --bg-input: rgba(9, 13, 21, 0.94);
+  --bg: #0a0d12;
+  --bg-alt: #11151d;
+  --bg-elevated: rgba(18, 23, 31, 0.88);
+  --bg-panel: rgba(13, 17, 24, 0.92);
+  --bg-card: rgba(21, 26, 35, 0.96);
+  --bg-input: rgba(9, 12, 18, 0.94);
   --line: rgba(148, 163, 184, 0.14);
   --line-strong: rgba(148, 163, 184, 0.28);
   --text-main: #eef2ff;
   --text-muted: rgba(226, 232, 240, 0.64);
-  --accent: #60a5fa;
-  --body-top: #4c638e;
-  --body-bottom: #22d3ee;
-  --body-start: #0c1018;
-  --body-mid: #090d13;
-  --body-end: #06080c;
+  --accent: #7dd3fc;
+  --body-top: #334155;
+  --body-bottom: #38bdf8;
+  --body-start: #06080d;
+  --body-mid: #0a0d12;
+  --body-end: #03050a;
   --warning: #f1b85b;
   --shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+}
+
+.app-shell[data-theme="slate"],
+:root[data-theme="slate"],
+.theme-picker__button[data-theme-preview="slate"] {
+  --accent: #7dd3fc;
+  --bg-elevated: rgba(18, 23, 31, 0.88);
+  --bg-card: rgba(21, 26, 35, 0.96);
+  --bg-input: rgba(9, 12, 18, 0.94);
+  --body-top: #334155;
+  --body-bottom: #38bdf8;
+  --body-start: #06080d;
+  --body-mid: #0a0d12;
+  --body-end: #03050a;
 }
 
 .app-shell[data-theme="mono"],
@@ -122,6 +136,10 @@ textarea {
   min-height: 100vh;
   gap: 0;
   padding: 0;
+}
+
+.app-shell--embed {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .sidebar-panel {
@@ -477,6 +495,11 @@ textarea {
   border: 0;
   border-radius: 0;
   box-shadow: none;
+}
+
+.app-shell--embed .workspace-panel,
+.app-shell--embed .canvas-surface {
+  min-height: 100vh;
 }
 
 .workspace-panel__empty {

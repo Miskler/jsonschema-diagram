@@ -12,6 +12,7 @@ import type {
   SchemaSelection,
 } from "./lib/schema-types";
 import {
+  DEFAULT_THEME_ID,
   THEME_PRESETS,
   THEME_STORAGE_KEY,
   readStoredTheme,
@@ -21,6 +22,7 @@ import { validateSchemaDocument } from "./lib/schema-validation";
 
 export function App() {
   const runtimeConfig = getRuntimeConfig();
+  const isEmbedMode = runtimeConfig.mode === "embed";
   const [sourceText, setSourceText] = useState("");
   const [sourceOrigin, setSourceOrigin] = useState("Waiting for schema…");
   const [defaultSchema, setDefaultSchema] = useState<JsonSchema | null>(null);
@@ -32,17 +34,26 @@ export function App() {
   const [errors, setErrors] = useState<string[]>([]);
   const [busy, setBusy] = useState(true);
   const [revision, setRevision] = useState(0);
-  const [themeId, setThemeId] = useState<ThemePresetId>(() => readStoredTheme());
+  const [themeId, setThemeId] = useState<ThemePresetId>(() => {
+    if (runtimeConfig.defaultTheme) {
+      return runtimeConfig.defaultTheme;
+    }
+
+    return runtimeConfig.mode === "site" ? readStoredTheme() : DEFAULT_THEME_ID;
+  });
   const requestCounter = useRef(0);
 
   useEffect(() => {
-    window.localStorage.setItem(THEME_STORAGE_KEY, themeId);
+    if (runtimeConfig.mode === "site") {
+      window.localStorage.setItem(THEME_STORAGE_KEY, themeId);
+    }
+
     document.documentElement.dataset.theme = themeId;
 
     return () => {
       delete document.documentElement.dataset.theme;
     };
-  }, [themeId]);
+  }, [runtimeConfig.mode, themeId]);
 
   const applySchemaDocument = useEffectEvent(
     async (schema: JsonSchema, text: string, origin: string) => {
@@ -187,24 +198,31 @@ export function App() {
   }
 
   return (
-    <div className="app-shell" data-theme={themeId}>
-      <SchemaSourcePanel
-        mode={runtimeConfig.mode}
-        sourceText={sourceText}
-        sourceOrigin={sourceOrigin}
-        busy={busy}
-        hasDefaultSchema={Boolean(defaultSchema)}
-        themeId={themeId}
-        themePresets={THEME_PRESETS}
-        errors={errors}
-        warnings={warnings}
-        onThemeChange={setThemeId}
-        onSourceChange={setSourceText}
-        onInsert={() => void handleInsert()}
-        onDelete={handleDelete}
-        onApply={() => void handleApply()}
-        onReset={() => void handleReset()}
-      />
+    <div
+      className={["app-shell", isEmbedMode ? "app-shell--embed" : ""]
+        .filter(Boolean)
+        .join(" ")}
+      data-theme={themeId}
+    >
+      {isEmbedMode ? null : (
+        <SchemaSourcePanel
+          mode={runtimeConfig.mode}
+          sourceText={sourceText}
+          sourceOrigin={sourceOrigin}
+          busy={busy}
+          hasDefaultSchema={Boolean(defaultSchema)}
+          themeId={themeId}
+          themePresets={THEME_PRESETS}
+          errors={errors}
+          warnings={warnings}
+          onThemeChange={setThemeId}
+          onSourceChange={setSourceText}
+          onInsert={() => void handleInsert()}
+          onDelete={handleDelete}
+          onApply={() => void handleApply()}
+          onReset={() => void handleReset()}
+        />
+      )}
 
       <main className="workspace-panel">
         {graphModel ? (

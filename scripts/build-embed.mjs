@@ -11,17 +11,25 @@ const siteHtmlPath = resolve(siteDir, "index.html");
 
 const html = await readFile(siteHtmlPath, "utf8");
 const defaultSchema = JSON.parse(await readFile(schemaPath, "utf8"));
+const defaultTheme = "slate";
 
 const bakedRuntimeConfigScript = `<script>window.__JSONSCHEMA_DIAGRAM_CONFIG__ = ${JSON.stringify(
   {
     mode: "embed",
     defaultSchema,
+    defaultTheme,
   },
 )};</script>\n`;
 
 const jinjaRuntimeConfigScript = `<script>
 window.__JSONSCHEMA_DIAGRAM_CONFIG__ = {
   mode: "embed",
+  defaultTheme:
+    {% if default_theme is defined %}
+      {{ default_theme | tojson }}
+    {% else %}
+      ${JSON.stringify(defaultTheme)}
+    {% endif %},
   defaultSchema:
     {% if default_schema is defined %}
       {{ default_schema | tojson }}
@@ -41,7 +49,7 @@ function inlineBuild(runtimeConfigScript) {
       const href = match[1];
       const original = match[0];
       const css = await readFile(resolve(siteDir, href.replace(/^\.\//, "")), "utf8");
-      output = output.replace(original, `<style>\n${css}\n</style>`);
+      output = output.replace(original, () => `<style>\n${css}\n</style>`);
     }
 
     let injectedRuntimeConfig = false;
@@ -53,7 +61,7 @@ function inlineBuild(runtimeConfigScript) {
       injectedRuntimeConfig = true;
       output = output.replace(
         original,
-        `${config}<script type="module">\n${js}\n</script>`,
+        () => `${config}<script type="module">\n${js}\n</script>`,
       );
     }
 
