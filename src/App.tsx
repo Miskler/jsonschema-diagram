@@ -11,6 +11,12 @@ import type {
   SchemaGraphModel,
   SchemaSelection,
 } from "./lib/schema-types";
+import {
+  THEME_PRESETS,
+  THEME_STORAGE_KEY,
+  readStoredTheme,
+  type ThemePresetId,
+} from "./lib/theme-presets";
 import { validateSchemaDocument } from "./lib/schema-validation";
 
 export function App() {
@@ -26,7 +32,17 @@ export function App() {
   const [errors, setErrors] = useState<string[]>([]);
   const [busy, setBusy] = useState(true);
   const [revision, setRevision] = useState(0);
+  const [themeId, setThemeId] = useState<ThemePresetId>(() => readStoredTheme());
   const requestCounter = useRef(0);
+
+  useEffect(() => {
+    window.localStorage.setItem(THEME_STORAGE_KEY, themeId);
+    document.documentElement.dataset.theme = themeId;
+
+    return () => {
+      delete document.documentElement.dataset.theme;
+    };
+  }, [themeId]);
 
   const applySchemaDocument = useEffectEvent(
     async (schema: JsonSchema, text: string, origin: string) => {
@@ -54,7 +70,7 @@ export function App() {
         startTransition(() => {
           setGraphModel(model);
           setPositions(nextPositions);
-          setSelection({ kind: "node", nodeId: model.rootNodeId });
+          setSelection(null);
           setErrors([]);
           setWarnings([...model.warnings]);
           setSourceOrigin(origin);
@@ -138,34 +154,24 @@ export function App() {
   }
 
   return (
-    <div className="app-shell">
-      <div className="app-shell__bg app-shell__bg--left" />
-      <div className="app-shell__bg app-shell__bg--right" />
-
+    <div className="app-shell" data-theme={themeId}>
       <SchemaSourcePanel
         mode={runtimeConfig.mode}
         sourceText={sourceText}
         sourceOrigin={sourceOrigin}
         busy={busy}
         hasDefaultSchema={Boolean(defaultSchema)}
+        themeId={themeId}
+        themePresets={THEME_PRESETS}
         errors={errors}
         warnings={warnings}
+        onThemeChange={setThemeId}
         onSourceChange={setSourceText}
         onApply={() => void handleApply()}
         onReset={() => void handleReset()}
       />
 
       <main className="workspace-panel">
-        <div className="workspace-panel__header">
-          <div>
-            <div className="workspace-panel__eyebrow">Visual Map</div>
-            <h2 className="workspace-panel__title">Schema graph</h2>
-          </div>
-          <div className="workspace-panel__meta">
-            {graphModel ? `${graphModel.nodes.length} nodes` : "No graph"}
-          </div>
-        </div>
-
         {graphModel ? (
           <SchemaCanvas
             model={graphModel}
@@ -184,7 +190,7 @@ export function App() {
         )}
       </main>
 
-      <DetailPanel details={details} />
+      <DetailPanel details={details} onClose={() => setSelection(null)} />
     </div>
   );
 }

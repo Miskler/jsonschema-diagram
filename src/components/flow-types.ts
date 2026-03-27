@@ -5,4 +5,5 @@ export interface FlowNodeData {
   selection: SchemaSelection | null;
   onSelectNode: (nodeId: string) => void;
   onSelectRow: (nodeId: string, rowId: string) => void;
+  onHoverRow: (nodeId: string, rowId: string | null) => void;
 }

@@ -4,13 +4,22 @@ import type { JsonSchema } from "../lib/schema-types";
 import { sampleSchema } from "../test-support/sampleSchema";
 
 describe("buildSchemaGraph", () => {
-  it("creates object, array, combinator, and enum nodes", () => {
+  it("creates direct array item links, enum nodes, and fans out combinators from a row", () => {
     const model = buildSchemaGraph(sampleSchema);
+    const rootNode = model.nodeMap[model.rootNodeId];
+    const ownerRow = rootNode.rows.find((row) => row.label === "owner");
+    const listRow = rootNode.rows.find((row) => row.label === "list");
+    const listTarget = listRow?.childNodeIds?.[0]
+      ? model.nodeMap[listRow.childNodeIds[0]]
+      : undefined;
 
     expect(model.rootNodeId).toContain("object");
-    expect(model.nodes.some((node) => node.kind === "array")).toBe(true);
-    expect(model.nodes.some((node) => node.kind === "combinator")).toBe(true);
+    expect(model.nodes.some((node) => node.kind === "array")).toBe(false);
+    expect(listTarget?.title).toBe("Item");
+    expect(model.nodes.some((node) => node.kind === "combinator")).toBe(false);
     expect(model.nodes.some((node) => node.kind === "enum")).toBe(true);
+    expect(ownerRow?.branchLabel).toBe("anyOf");
+    expect(ownerRow?.childNodeIds).toHaveLength(2);
   });
 
   it("resolves local refs and tolerates cycles", () => {
@@ -54,7 +63,59 @@ describe("buildSchemaGraph", () => {
     });
 
     expect(details?.heading).toBe("status");
-    expect(details?.lines.some((line) => line.includes("type: enum"))).toBe(true);
-    expect(details?.lines.some((line) => line.includes("#/$defs/status"))).toBe(true);
+    expect(details?.facts.some((line) => line.includes("type: enum"))).toBe(true);
+    expect(details?.schemaPointer).toBe("#/properties/status");
+    expect(details?.resolvedSchemaPointer).toBe("#/$defs/status");
+    expect(details?.instancePathTokens).toEqual(["status"]);
+  });
+
+  it("allocates enough space for enum values", () => {
+    const schema: JsonSchema = {
+      title: "Status",
+      type: "string",
+      enum: ["draft", "review", "published"],
+    };
+
+    const model = buildSchemaGraph(schema);
+    const enumNode = model.nodes.find((node) => node.kind === "enum");
+
+    expect(enumNode).toBeDefined();
+    expect(enumNode?.size.height).toBeGreaterThanOrEqual(220);
+  });
+
+  it("keeps array item links direct without an items edge label", () => {
+    const schema: JsonSchema = {
+      title: "Tags",
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          value: {
+            type: "string",
+          },
+        },
+      },
+    };
+
+    const model = buildSchemaGraph(schema);
+    const arrayNode = model.nodes.find((node) => node.kind === "array");
+    const arrayEdge = model.edges.find((edge) => edge.source === arrayNode?.id);
+
+    expect(arrayNode).toBeDefined();
+    expect(arrayNode?.rows[0]?.relation).toBe("items");
+    expect(arrayEdge?.label).toBeUndefined();
+    expect(arrayNode?.size.height).toBe(84);
+  });
+
+  it("derives a primary JSON path for reused definition nodes", () => {
+    const model = buildSchemaGraph(sampleSchema);
+    const itemNode = model.nodes.find((node) => node.title === "Item");
+    const details = getSelectionDetails(model, {
+      kind: "node",
+      nodeId: itemNode!.id,
+    });
+
+    expect(details?.schemaPointer).toBe("#/$defs/item");
+    expect(details?.instancePathTokens).toEqual(["list", 0]);
   });
 });

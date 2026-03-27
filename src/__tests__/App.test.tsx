@@ -85,8 +85,13 @@ describe("App", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: "status" }));
 
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
     expect(await screen.findByText("required field")).toBeInTheDocument();
+    expect(await screen.findByText("Schema pointer")).toBeInTheDocument();
     expect(await screen.findByText("#/properties/status")).toBeInTheDocument();
+    expect(await screen.findByText("#/$defs/status")).toBeInTheDocument();
+    expect(await screen.findByText("JSON path")).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Slash" })).toBeInTheDocument();
     expect(await screen.findByText(/type: enum/)).toBeInTheDocument();
   });
 });

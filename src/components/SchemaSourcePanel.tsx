@@ -1,11 +1,16 @@
+import type { ThemePreset, ThemePresetId } from "../lib/theme-presets";
+
 interface SchemaSourcePanelProps {
   mode: "site" | "embed";
   sourceText: string;
   sourceOrigin: string;
   busy: boolean;
   hasDefaultSchema: boolean;
+  themeId: ThemePresetId;
+  themePresets: readonly ThemePreset[];
   errors: string[];
   warnings: string[];
+  onThemeChange: (themeId: ThemePresetId) => void;
   onSourceChange: (value: string) => void;
   onApply: () => void;
   onReset: () => void;
@@ -17,8 +22,11 @@ export function SchemaSourcePanel({
   sourceOrigin,
   busy,
   hasDefaultSchema,
+  themeId,
+  themePresets,
   errors,
   warnings,
+  onThemeChange,
   onSourceChange,
   onApply,
   onReset,
@@ -35,6 +43,34 @@ export function SchemaSourcePanel({
       <div className="source-panel__meta">
         <span className="source-panel__meta-chip">{mode}</span>
         <span className="source-panel__meta-chip">{busy ? "Updating…" : "Ready"}</span>
+      </div>
+
+      <div className="theme-picker">
+        <div className="source-panel__label">Color preset</div>
+        <div className="theme-picker__grid">
+          {themePresets.map((preset) => (
+            <button
+              key={preset.id}
+              type="button"
+              className={[
+                "theme-picker__button",
+                themeId === preset.id ? "is-active" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              data-theme-preview={preset.id}
+              onClick={() => onThemeChange(preset.id)}
+              aria-pressed={themeId === preset.id}
+            >
+              <span className="theme-picker__swatches">
+                <span className="theme-picker__swatch" />
+                <span className="theme-picker__swatch theme-picker__swatch--alt" />
+                <span className="theme-picker__swatch theme-picker__swatch--surface" />
+              </span>
+              <span>{preset.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       <label className="source-panel__label" htmlFor="schema-input">
