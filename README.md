@@ -1,129 +1,313 @@
+<div align="center">
+
 # jsonschema_diagram
 
-Interactive frontend for visualizing `JSON Schema` as a node diagram. The parser,
-graph builder, ref resolution, and layout logic all live in the browser. Python
-now also provides a small library API, CLI, Sphinx extension, and shared
-helpers for serving the default schema and rendering embed HTML.
+*A frontend-first toolkit for visualizing `JSON Schema` as an interactive node graph, with a polished web viewer, self-contained embed artifacts, a Python API, CLI, and Sphinx integration.*
 
-## What is inside
+[![Python](https://img.shields.io/badge/python-3.10+-blue)](https://python.org)
+[![Node](https://img.shields.io/badge/node-18.19+-5fa04e)](https://nodejs.org)
+[![React](https://img.shields.io/badge/frontend-react%20%2B%20vite-61dafb)](https://react.dev)
+[![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Type checked: mypy](https://img.shields.io/badge/type--checked-mypy-blue)](https://mypy.readthedocs.io/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-- `src/`: React + TypeScript app powered by `Vite`, `React Flow`, `ELK`, and `Ajv`
-- `schemas/default.json`: shared schema used by both frontend and Python backend
-- `jsonschema_diagram/`: Python API and CLI for serving the app or rendering embeds
-- `backend/app.py`: compatibility entrypoint for the minimal Python 3 server
-- `scripts/build-embed.mjs`: bakes the site build into a self-contained HTML file
+**[Documentation](docs/index.rst)** | **[Sphinx Demo](docs/demo.rst)** | **[Python API](docs/python-api.rst)** | **[CLI](docs/cli.rst)** | **[Schema Support](docs/schema-support.rst)**
 
-## Frontend capabilities
+</div>
 
-- dark diagram UI with table-like schema cards
-- support for `properties`, `required`, `items`, `enum`, `const`, `anyOf`, `oneOf`, `allOf`
-- local `#/...` `$ref` resolution with cycle-safe graph building
-- raw JSON textarea, apply/reset flow, warnings for unsupported keywords
-- selection details with JSON Pointer and detected constraints
-- viewer-only embed mode with configurable default theme
+<h2 align="center">✨ Features</h2>
 
-## Local development
+- **Interactive schema graph**: render objects, arrays, refs, enums, and combinators as connected cards instead of raw JSON blocks.
+- **Frontend-first architecture**: parsing, graph building, ref resolution, layout, search, and interaction all live in the browser.
+- **Embed-ready output**: generate a self-contained HTML viewer for docs portals, static pages, and Sphinx.
+- **Python integration**: use a small Python API and CLI to serve the site, render embed HTML, and integrate with docs tooling.
+- **Sphinx extension included**: embed diagrams from inline JSON, local schema files, or a shared default schema.
+- **Selection and path tooling**: inspect schema paths and JSON paths, copy them in multiple formats, and follow links across the graph.
+- **Theme-aware viewer**: support clean read-only embed mode with configurable default themes.
 
-1. Install Node.js 18.19+.
-2. Install dependencies:
+<h2 align="center">🚀 Quick Start</h2>
 
-```bash
-npm install
-```
+<h3 align="center">Installation</h3>
 
-3. Run the frontend:
-
-```bash
-npm run dev
-```
-
-4. In another terminal, serve the Python endpoint and built frontend when needed:
-
-```bash
-python3 -m backend.app
-```
-
-## Build outputs
-
-- `npm run build:site` creates the normal static site in `dist/site`
-- `npm run build:embed` turns the site build into self-contained HTML in `dist/embed`
-- `npm run build` runs both steps in order
-
-The embed artifact is designed for documentation systems such as `Sphinx`, where
-you want to ship a baked schema with a file that can be opened directly.
-
-`build:embed` now produces two embed variants:
-- `dist/embed/jsonschema-diagram.embed.html`: baked schema, ready to open directly
-- `dist/embed/jsonschema-diagram.embed.jinja2.html`: Jinja2-friendly template
-
-The Jinja2 variant accepts either:
-- `default_schema`: a Python dict-like schema object, rendered through `tojson`
-- `default_schema_json`: a pre-serialized JSON string marked as safe
-- `default_theme`: one of `slate`, `mono`, `cobalt`, `mint`, `coral`, or `gold`
-
-If neither variable is provided, it falls back to the baked schema from
-`schemas/default.json`. In embed mode the left schema editor panel is hidden, so
-the viewer behaves like a clean read-only canvas.
-
-## Python API and CLI
-
-Install in editable mode when you want the Python entrypoints:
+For normal usage from this repository checkout, install the Python package and use
+the bundled frontend artifacts:
 
 ```bash
 python3 -m pip install -e .
 ```
 
-Library usage:
+You do **not** need `npm install` just to:
+
+- serve the viewer
+- render embed HTML
+- use the Python API
+- use the Sphinx extension
+
+<h3 align="center">Local Viewer</h3>
+
+Serve the viewer and the default schema endpoint:
+
+```bash
+jsonschema-diagram serve
+```
+
+<h3 align="center">Self-Contained Embed</h3>
+
+```bash
+jsonschema-diagram render-embed \
+  --schema-path schemas/default.json \
+  --theme slate \
+  --output diagram.html
+```
+
+<h3 align="center">30-Second Python Example</h3>
 
 ```python
 from jsonschema_diagram import load_default_schema, render_embed_html
 
 schema = load_default_schema()
 html = render_embed_html(schema, default_theme="slate")
+
+print(html[:200])
 ```
 
-CLI usage:
+<h3 align="center">CLI Usage</h3>
 
 ```bash
+# Serve the built site plus /api/default-jsonschema
 jsonschema-diagram serve --host 127.0.0.1 --port 8000
-jsonschema-diagram render-embed --schema-path schemas/default.json --theme slate --output diagram.html
+
+# Render a self-contained embed document
+jsonschema-diagram render-embed \
+  --schema-path schemas/default.json \
+  --theme slate \
+  --output diagram.html
+
+# Read schema JSON from stdin
+cat schemas/default.json | jsonschema-diagram render-embed --stdin --output diagram.html
 ```
 
-## Python backend contract
+<h3 align="center">Sphinx Guide</h3>
 
-`GET /api/default-jsonschema` returns the raw JSON document from `schemas/default.json`.
-
-When `dist/site` exists, the Python server also serves the built frontend with
-SPA fallback to `index.html`.
-
-## Tests
-
-- Frontend unit/integration tests: `npm test`
-- Python smoke tests: `python3 -m unittest discover -s tests -v`
-
-## Sphinx extension demo
-
-This repository now includes a local Sphinx extension in `jsonschema_diagram_sphinx`
-plus a demo site in `docs/`.
-
-1. Build the embed artifacts:
-
-```bash
-npm run build:embed
-```
-
-2. Install docs dependencies:
+Build the embed artifact and the docs site:
 
 ```bash
 python3 -m pip install -r docs/requirements.txt
+npm run build:embed
+python3 -m sphinx -E -a -b html docs docs/_build/html
 ```
 
-3. Build the demo docs:
+Minimal `conf.py`:
+
+```python
+extensions = ["jsonschema_diagram_sphinx"]
+
+jsonschema_diagram_embed_template = "dist/embed/jsonschema-diagram.embed.jinja2.html"
+jsonschema_diagram_default_schema_path = "schemas/default.json"
+jsonschema_diagram_default_height = "760px"
+jsonschema_diagram_default_theme = "slate"
+```
+
+Minimal directive:
+
+```rst
+.. jsonschema-diagram::
+   :schema-file: examples/pattern-catalog.json
+   :theme: mono
+   :height: 720px
+```
+
+<h3 align="center">Frontend Development Only</h3>
+
+You only need Node.js and `npm install` when you want to rebuild or work on the
+frontend itself:
 
 ```bash
-python3 -m sphinx -b html docs docs/_build/html
+npm install
+npm run dev
 ```
 
-The demo extension accepts inline JSON, `:schema-file:` paths, or a default
-schema configured in `docs/conf.py`. Theme can also be set globally with
-`jsonschema_diagram_default_theme` or per-directive with `:theme:`.
+<h2 align="center">🧭 Viewer Modes</h2>
+
+<h3 align="center"><code>site</code></h3>
+
+The full application experience:
+
+- left schema input panel
+- theme preset picker
+- raw schema editor
+- apply/reset actions
+- graph canvas, search, zoom, and selection dialog
+
+<h3 align="center"><code>embed</code></h3>
+
+The clean viewer-only mode:
+
+- no left editor panel
+- ideal for docs and static embedding
+- default schema and theme are injected through runtime config or Jinja
+
+Runtime config shape:
+
+```html
+<script>
+window.__JSONSCHEMA_DIAGRAM_CONFIG__ = {
+  mode: "embed",
+  defaultTheme: "slate",
+  defaultSchema: {...}
+};
+</script>
+```
+
+<h2 align="center">📦 Build Outputs</h2>
+
+```bash
+npm run build
+```
+
+This produces:
+
+- `dist/site/index.html`: normal static site build
+- `dist/embed/jsonschema-diagram.embed.html`: baked standalone embed file
+- `dist/embed/jsonschema-diagram.embed.jinja2.html`: Jinja2-friendly embed template
+
+The Jinja2 embed variant accepts:
+
+- `default_schema`
+- `default_schema_json`
+- `default_theme`
+
+If not provided, it falls back to the shared schema in `schemas/default.json` and the default embed theme.
+
+<h2 align="center">🧩 Supported Schema Features</h2>
+
+Current core support includes:
+
+- `type`
+- `format`
+- `properties`
+- `required`
+- `patternProperties`
+- `items`
+- `prefixItems`
+- `enum`
+- `const`
+- `anyOf`
+- `oneOf`
+- `allOf`
+- local `#/...` `$ref`
+
+More detail is documented in [Schema Support](docs/schema-support.rst).
+
+<h2 align="center">🐍 Python API</h2>
+
+Public helpers currently include:
+
+- `load_default_schema()`
+- `load_json_schema(path)`
+- `render_embed_html(schema, default_theme=...)`
+- `write_embed_html(path, schema, default_theme=...)`
+- `create_server(...)`
+- `build_handler(...)`
+
+Example:
+
+```python
+from jsonschema_diagram import create_server, load_json_schema, write_embed_html
+
+schema = load_json_schema("schemas/default.json")
+write_embed_html("build/diagram.html", schema, default_theme="mono")
+
+server = create_server(host="127.0.0.1", port=8000)
+server.serve_forever()
+```
+
+Full reference: [Python API](docs/python-api.rst)
+
+<h2 align="center">📚 Sphinx Extension</h2>
+
+The repository ships with `jsonschema_diagram_sphinx`, which embeds the viewer
+through an `iframe` using the self-contained embed artifact.
+
+Minimal `conf.py`:
+
+```python
+extensions = ["jsonschema_diagram_sphinx"]
+
+jsonschema_diagram_embed_template = "dist/embed/jsonschema-diagram.embed.jinja2.html"
+jsonschema_diagram_default_schema_path = "schemas/default.json"
+jsonschema_diagram_default_height = "760px"
+jsonschema_diagram_default_theme = "slate"
+```
+
+Minimal directive:
+
+```rst
+.. jsonschema-diagram::
+   :schema-file: examples/pattern-catalog.json
+   :theme: mono
+   :height: 720px
+```
+
+More detail: [Sphinx Extension](docs/sphinx-extension.rst)
+
+<h2 align="center">📖 Documentation</h2>
+
+The repository includes a much more detailed Sphinx doc set than the demo page alone.
+
+- [Getting Started](docs/getting-started.rst)
+- [Viewer Modes](docs/viewer-modes.rst)
+- [Python API](docs/python-api.rst)
+- [CLI](docs/cli.rst)
+- [Sphinx Extension](docs/sphinx-extension.rst)
+- [Schema Support](docs/schema-support.rst)
+- [Troubleshooting](docs/troubleshooting.rst)
+- [Development](docs/development.rst)
+- [Demo Page](docs/demo.rst)
+
+Build the docs locally:
+
+```bash
+python3 -m pip install -r docs/requirements.txt
+python3 -m sphinx -E -a -b html docs docs/_build/html
+```
+
+<h2 align="center">🛠️ Development</h2>
+
+Common commands:
+
+```bash
+npm test
+python3 -m unittest discover -s tests -v
+npm run build
+python3 -m sphinx -E -a -b html docs docs/_build/html
+```
+
+Python code quality commands:
+
+```bash
+make format
+make lint
+make type-check
+```
+
+These use the configured tooling:
+
+- `black`
+- `isort`
+- `flake8`
+- `mypy`
+
+<h2 align="center">🗂️ Project Layout</h2>
+
+- `src/`: React + TypeScript viewer
+- `schemas/default.json`: shared default schema
+- `jsonschema_diagram/`: Python API and CLI
+- `jsonschema_diagram_sphinx/`: Sphinx extension
+- `backend/`: compatibility HTTP server entrypoint
+- `docs/`: Sphinx documentation source
+- `scripts/build-embed.mjs`: embed builder
+
+<h2 align="center">📄 License</h2>
+
+MIT License. See [LICENSE](LICENSE) for details.
