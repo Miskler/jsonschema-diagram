@@ -3,7 +3,17 @@ import { createTargetHandleId } from "../lib/handle-ids";
 import type { FlowNodeData } from "./flow-types";
 
 export function SchemaNode({ data, id, selected }: NodeProps<FlowNodeData>) {
-  const { schemaNode, selection, onSelectNode, onSelectRow, onHoverRow } = data;
+  const {
+    schemaNode,
+    selection,
+    onSelectNode,
+    onSelectRow,
+    onHoverRow,
+    isSearchMatched,
+    isSearchActive,
+    matchedRowIds,
+    activeSearchRowId,
+  } = data;
   const activeRowId = selection?.kind === "row" ? selection.rowId : null;
   const nodeSelected =
     selected || (selection?.kind === "node" && selection.nodeId === id);
@@ -25,6 +35,8 @@ export function SchemaNode({ data, id, selected }: NodeProps<FlowNodeData>) {
         directArrayRow ? "schema-node--direct-link" : "",
         hasRequiredRows ? "schema-node--has-required" : "",
         nodeSelected ? "is-selected" : "",
+        isSearchMatched ? "is-search-match" : "",
+        isSearchActive ? "is-search-active" : "",
       ]
         .filter(Boolean)
         .join(" ")}
@@ -71,6 +83,8 @@ export function SchemaNode({ data, id, selected }: NodeProps<FlowNodeData>) {
             const rowSelected = activeRowId === row.id;
             const hasChildren =
               (row.childNodeIds?.length ?? 0) > 0 || Boolean(row.childNodeId);
+            const rowSearchMatched = matchedRowIds.has(row.id);
+            const rowSearchActive = activeSearchRowId === row.id;
 
             return (
               <button
@@ -80,6 +94,8 @@ export function SchemaNode({ data, id, selected }: NodeProps<FlowNodeData>) {
                 className={[
                   "schema-node__row",
                   rowSelected ? "is-active" : "",
+                  rowSearchMatched ? "is-search-match" : "",
+                  rowSearchActive ? "is-search-active" : "",
                   hasChildren ? "has-child" : "",
                 ]
                   .filter(Boolean)

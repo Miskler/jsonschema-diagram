@@ -1,13 +1,18 @@
 import {
   Background,
-  Controls,
   ReactFlow,
-  useReactFlow,
   type Edge,
   type Node,
   type ReactFlowInstance,
 } from "@xyflow/react";
-import { useEffect, useRef, type MouseEvent as ReactMouseEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 import { createTargetHandleId } from "../lib/handle-ids";
 import type { NodePositions } from "../lib/layout";
 import type {
@@ -45,6 +50,8 @@ interface EdgeHoverSample {
 
 const EDGE_HOVER_DISTANCE = 16;
 const EDGE_SAMPLE_STEP = 12;
+const MAX_SEARCH_RESULTS = 10;
+const EMPTY_ROW_ID_SET = new Set<string>();
 
 const nodeTypes = {
   schema: SchemaNode,
@@ -63,19 +70,13 @@ interface SchemaCanvasProps {
   onSelectRow: (nodeId: string, rowId: string) => void;
 }
 
-function FitViewOnRevision({ revision }: { revision: number }) {
-  const reactFlow = useReactFlow();
-
-  useEffect(() => {
-    void reactFlow.fitView({
-      duration: 250,
-      padding: 0.18,
-      minZoom: 0.2,
-      maxZoom: 1.15,
-    });
-  }, [reactFlow, revision]);
-
-  return null;
+interface SearchMatch {
+  id: string;
+  kind: "node" | "row";
+  nodeId: string;
+  rowId?: string;
+  label: string;
+  meta: string;
 }
 
 export function SchemaCanvas({
@@ -94,6 +95,40 @@ export function SchemaCanvas({
   const hoveredRowRef = useRef<{ nodeId: string; rowId: string } | null>(null);
   const hoverFrameRef = useRef<number | null>(null);
   const pendingPointerRef = useRef<{ x: number; y: number } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeSearchIndex, setActiveSearchIndex] = useState(0);
+
+  const searchMatches = useMemo(
+    () => buildSearchMatches(model, searchQuery),
+    [model, searchQuery],
+  );
+  const activeSearchMatch =
+    searchMatches.length > 0
+      ? searchMatches[Math.min(activeSearchIndex, searchMatches.length - 1)]
+      : null;
+  const visibleSearchMatches = useMemo(() => {
+    if (searchMatches.length <= MAX_SEARCH_RESULTS) {
+      return searchMatches.map((match, index) => ({ match, index }));
+    }
+
+    const halfWindow = Math.floor(MAX_SEARCH_RESULTS / 2);
+    const start = Math.min(
+      Math.max(0, activeSearchIndex - halfWindow),
+      searchMatches.length - MAX_SEARCH_RESULTS,
+    );
+
+    return searchMatches
+      .slice(start, start + MAX_SEARCH_RESULTS)
+      .map((match, index) => ({ match, index: start + index }));
+  }, [activeSearchIndex, searchMatches]);
+  const matchedRowIdsByNode = useMemo(
+    () => buildMatchedRowIdsByNode(searchMatches),
+    [searchMatches],
+  );
+  const matchedNodeIds = useMemo(
+    () => new Set(searchMatches.map((match) => match.nodeId)),
+    [searchMatches],
+  );
 
   useEffect(() => {
     setHoveredEdgeDom(null, edgeSamplesRef.current, hoveredEdgeIdRef);
@@ -122,6 +157,29 @@ export function SchemaCanvas({
     };
   }, [model, revision]);
 
+  useEffect(() => {
+    setActiveSearchIndex((current) => {
+      if (searchMatches.length === 0) {
+        return 0;
+      }
+
+      return Math.min(current, searchMatches.length - 1);
+    });
+  }, [searchMatches.length]);
+
+  useEffect(() => {
+    if (!reactFlowRef.current) {
+      return;
+    }
+
+    void reactFlowRef.current.fitView({
+      duration: 250,
+      padding: 0.18,
+      minZoom: 0.2,
+      maxZoom: 1.15,
+    });
+  }, [revision]);
+
   const nodes: Node<FlowNodeData>[] = model.nodes.map((node) => ({
     id: node.id,
     type: "schema",
@@ -131,6 +189,13 @@ export function SchemaCanvas({
       onSelectNode,
       onSelectRow,
       onHoverRow: handleRowHover,
+      isSearchMatched: matchedNodeIds.has(node.id),
+      isSearchActive: activeSearchMatch?.nodeId === node.id,
+      matchedRowIds: matchedRowIdsByNode.get(node.id) ?? EMPTY_ROW_ID_SET,
+      activeSearchRowId:
+        activeSearchMatch?.kind === "row" && activeSearchMatch.nodeId === node.id
+          ? activeSearchMatch.rowId
+          : undefined,
     },
     position: positions[node.id] ?? { x: 0, y: 0 },
     draggable: false,
@@ -273,8 +338,204 @@ export function SchemaCanvas({
     }
   }
 
+  function handleZoomIn() {
+    void reactFlowRef.current?.zoomIn({ duration: 150 });
+  }
+
+  function handleZoomOut() {
+    void reactFlowRef.current?.zoomOut({ duration: 150 });
+  }
+
+  function handleFitView() {
+    void reactFlowRef.current?.fitView({
+      duration: 220,
+      padding: 0.18,
+      minZoom: 0.2,
+      maxZoom: 1.15,
+    });
+  }
+
+  function revealSearchMatch(match: SearchMatch | null) {
+    if (!match) {
+      return;
+    }
+
+    if (match.kind === "row" && match.rowId) {
+      onSelectRow(match.nodeId, match.rowId);
+    } else {
+      onSelectNode(match.nodeId);
+    }
+
+    void reactFlowRef.current?.fitView({
+      nodes: [{ id: match.nodeId }],
+      duration: 220,
+      padding: 0.36,
+      minZoom: 0.35,
+      maxZoom: 1.18,
+    });
+  }
+
+  function moveSearchCursor(delta: number, reveal = false) {
+    if (searchMatches.length === 0) {
+      return;
+    }
+
+    const nextIndex =
+      (activeSearchIndex + delta + searchMatches.length) % searchMatches.length;
+    const nextMatch = searchMatches[nextIndex];
+
+    setActiveSearchIndex(nextIndex);
+
+    if (reveal) {
+      revealSearchMatch(nextMatch);
+    }
+  }
+
+  function handleSearchKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      moveSearchCursor(1, true);
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      moveSearchCursor(-1, true);
+      return;
+    }
+
+    if (event.key === "Enter") {
+      event.preventDefault();
+      revealSearchMatch(activeSearchMatch);
+      return;
+    }
+
+    if (event.key === "Escape" && searchQuery) {
+      event.preventDefault();
+      setSearchQuery("");
+      setActiveSearchIndex(0);
+    }
+  }
+
   return (
     <div ref={canvasRef} className="canvas-surface">
+      <div
+        className="canvas-toolbar nopan nowheel"
+        onMouseDown={(event) => event.stopPropagation()}
+        onDoubleClick={(event) => event.stopPropagation()}
+      >
+        <div className="canvas-toolbar__search-row">
+          <label className="canvas-toolbar__search">
+            <SearchIcon />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(event) => {
+                setSearchQuery(event.target.value);
+                setActiveSearchIndex(0);
+              }}
+              onKeyDown={handleSearchKeyDown}
+              className="canvas-toolbar__search-input"
+              placeholder="Search nodes and fields"
+              aria-label="Search schema tree"
+            />
+            {searchQuery ? (
+              <button
+                type="button"
+                className="canvas-toolbar__clear"
+                onClick={() => {
+                  setSearchQuery("");
+                  setActiveSearchIndex(0);
+                }}
+                aria-label="Clear search"
+                title="Clear search"
+              >
+                <ClearIcon />
+              </button>
+            ) : null}
+          </label>
+
+          <div className="canvas-toolbar__zoom-group">
+            <button
+              type="button"
+              className="canvas-toolbar__button"
+              onClick={handleZoomOut}
+              aria-label="Zoom out"
+              title="Zoom out"
+            >
+              -
+            </button>
+            <button
+              type="button"
+              className="canvas-toolbar__button canvas-toolbar__button--fit"
+              onClick={handleFitView}
+              aria-label="Fit view"
+              title="Fit view"
+            >
+              <FitIcon />
+            </button>
+            <button
+              type="button"
+              className="canvas-toolbar__button"
+              onClick={handleZoomIn}
+              aria-label="Zoom in"
+              title="Zoom in"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {searchQuery.trim() ? (
+          <div className="canvas-toolbar__results" role="listbox" aria-label="Search results">
+            {searchMatches.length > 0 ? (
+              <div className="canvas-toolbar__results-meta">
+                {activeSearchIndex + 1}/{searchMatches.length} matches
+              </div>
+            ) : null}
+            {searchMatches.length > 0 ? (
+              visibleSearchMatches.map(({ match, index }) => {
+                const isActive = index === activeSearchIndex;
+
+                return (
+                  <button
+                    type="button"
+                    key={match.id}
+                    className={[
+                      "canvas-toolbar__result",
+                      isActive ? "is-active" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    onMouseEnter={() => setActiveSearchIndex(index)}
+                    onClick={() => {
+                      setActiveSearchIndex(index);
+                      revealSearchMatch(match);
+                    }}
+                    role="option"
+                    aria-selected={isActive}
+                  >
+                    <span className="canvas-toolbar__result-kind">
+                      {match.kind === "row" ? "field" : "node"}
+                    </span>
+                    <span className="canvas-toolbar__result-body">
+                      <span className="canvas-toolbar__result-title">
+                        {renderHighlightedText(match.label, searchQuery)}
+                      </span>
+                      <span className="canvas-toolbar__result-meta">
+                        {renderHighlightedText(match.meta, searchQuery)}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })
+            ) : (
+              <div className="canvas-toolbar__empty">No matches in the current schema.</div>
+            )}
+          </div>
+        ) : null}
+      </div>
+
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -299,8 +560,6 @@ export function SchemaCanvas({
         proOptions={{ hideAttribution: true }}
       >
         <Background color="rgba(255,255,255,0.06)" gap={22} size={1} />
-        <Controls showInteractive={false} />
-        <FitViewOnRevision revision={revision} />
       </ReactFlow>
     </div>
   );
@@ -659,4 +918,147 @@ function findHoveredEdgeId(
   }
 
   return closestId;
+}
+
+function buildSearchMatches(
+  model: SchemaGraphModel,
+  query: string,
+): SearchMatch[] {
+  const normalizedQuery = query.trim().toLowerCase();
+
+  if (!normalizedQuery) {
+    return [];
+  }
+
+  const matches: SearchMatch[] = [];
+
+  for (const node of model.nodes) {
+    const nodeMeta = [node.subtitle, node.pointer, ...node.metaLines]
+      .filter(Boolean)
+      .join(" • ");
+    const nodeHaystack = [node.title, nodeMeta, node.description ?? ""]
+      .join(" ")
+      .toLowerCase();
+
+    if (nodeHaystack.includes(normalizedQuery)) {
+      matches.push({
+        id: `node:${node.id}`,
+        kind: "node",
+        nodeId: node.id,
+        label: node.title,
+        meta: nodeMeta,
+      });
+    }
+
+    for (const row of node.rows) {
+      const rowMeta = [node.title, row.typeLabel, row.pointer, ...row.detailLines]
+        .filter(Boolean)
+        .join(" • ");
+      const rowHaystack = [row.label, rowMeta, row.description ?? ""]
+        .join(" ")
+        .toLowerCase();
+
+      if (!rowHaystack.includes(normalizedQuery)) {
+        continue;
+      }
+
+      matches.push({
+        id: `row:${row.id}`,
+        kind: "row",
+        nodeId: node.id,
+        rowId: row.id,
+        label: row.label,
+        meta: `${node.title} • ${row.typeLabel}`,
+      });
+    }
+  }
+
+  return matches;
+}
+
+function buildMatchedRowIdsByNode(matches: SearchMatch[]): Map<string, Set<string>> {
+  const result = new Map<string, Set<string>>();
+
+  for (const match of matches) {
+    if (match.kind !== "row" || !match.rowId) {
+      continue;
+    }
+
+    const existing = result.get(match.nodeId);
+
+    if (existing) {
+      existing.add(match.rowId);
+      continue;
+    }
+
+    result.set(match.nodeId, new Set([match.rowId]));
+  }
+
+  return result;
+}
+
+function renderHighlightedText(value: string, query: string) {
+  const normalizedQuery = query.trim();
+
+  if (!normalizedQuery) {
+    return value;
+  }
+
+  const matchIndex = value.toLowerCase().indexOf(normalizedQuery.toLowerCase());
+
+  if (matchIndex === -1) {
+    return value;
+  }
+
+  const before = value.slice(0, matchIndex);
+  const hit = value.slice(matchIndex, matchIndex + normalizedQuery.length);
+  const after = value.slice(matchIndex + normalizedQuery.length);
+
+  return (
+    <>
+      {before}
+      <mark className="canvas-toolbar__result-hit">{hit}</mark>
+      {after}
+    </>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true">
+      <path
+        d="M13.5 12.1 17 15.6l-1.4 1.4-3.5-3.5a6 6 0 1 1 1.4-1.4ZM8.5 13A4.5 4.5 0 1 0 8.5 4a4.5 4.5 0 0 0 0 9Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+function FitIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true">
+      <path
+        d="M3 8V3h5M12 3h5v5M17 12v5h-5M8 17H3v-5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ClearIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true">
+      <path
+        d="M6 6 14 14M14 6 6 14"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
 }

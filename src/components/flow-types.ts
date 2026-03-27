@@ -6,4 +6,8 @@ export interface FlowNodeData {
   onSelectNode: (nodeId: string) => void;
   onSelectRow: (nodeId: string, rowId: string) => void;
   onHoverRow: (nodeId: string, rowId: string | null) => void;
+  isSearchMatched: boolean;
+  isSearchActive: boolean;
+  matchedRowIds: Set<string>;
+  activeSearchRowId?: string;
 }
