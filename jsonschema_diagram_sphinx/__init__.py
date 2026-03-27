@@ -7,15 +7,16 @@ from typing import Any
 
 from docutils import nodes
 from docutils.parsers.rst import directives
+from sphinx.application import Sphinx
+from sphinx.util.docutils import SphinxDirective
+from sphinx.util.fileutil import copy_asset
+
 from jsonschema_diagram import (
     DEFAULT_EMBED_TEMPLATE_PATH,
     load_json_schema,
     render_embed_html,
     validate_theme_id,
 )
-from sphinx.application import Sphinx
-from sphinx.util.docutils import SphinxDirective
-from sphinx.util.fileutil import copy_asset
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 DEFAULT_EMBED_TEMPLATE = DEFAULT_EMBED_TEMPLATE_PATH
@@ -46,13 +47,15 @@ def build_iframe_markup(
     escaped_title = html.escape(title, quote=True)
     escaped_height = html.escape(height, quote=True)
     caption_markup = (
-        f'<figcaption class="jsonschema-diagram-sphinx__caption">{html.escape(caption)}</figcaption>'
+        '<figcaption class="jsonschema-diagram-sphinx__caption">'
+        f"{html.escape(caption)}</figcaption>"
         if caption
         else ""
     )
 
     return (
-        f'<figure class="jsonschema-diagram-sphinx" style="--jsonschema-diagram-height: {escaped_height};">'
+        '<figure class="jsonschema-diagram-sphinx" '
+        f'style="--jsonschema-diagram-height: {escaped_height};">'
         f'<iframe class="jsonschema-diagram-sphinx__frame" loading="lazy" '
         f'title="{escaped_title}" srcdoc="{escaped_srcdoc}"></iframe>'
         f"{caption_markup}"
@@ -104,7 +107,9 @@ class JsonSchemaDiagramDirective(SphinxDirective):
         configured_default = self.env.app.config.jsonschema_diagram_default_schema_path
 
         if has_inline_content and has_schema_file:
-            raise self.error("Use either inline JSON content or :schema-file:, not both.")
+            raise self.error(
+                "Use either inline JSON content or :schema-file:, not both."
+            )
 
         if has_inline_content:
             return self._parse_inline_json("\n".join(self.content))
@@ -121,12 +126,14 @@ class JsonSchemaDiagramDirective(SphinxDirective):
             return load_json_schema(path)
 
         raise self.error(
-            "No schema source provided. Add inline JSON, use :schema-file:, or configure "
-            "`jsonschema_diagram_default_schema_path`."
+            "No schema source provided. Add inline JSON, use :schema-file:, "
+            "or configure `jsonschema_diagram_default_schema_path`."
         )
 
     def _resolve_theme(self) -> str | None:
-        theme = self.options.get("theme") or self.env.app.config.jsonschema_diagram_default_theme
+        theme = self.options.get("theme") or (
+            self.env.app.config.jsonschema_diagram_default_theme
+        )
 
         if theme is None:
             return None

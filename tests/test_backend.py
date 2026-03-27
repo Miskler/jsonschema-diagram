@@ -34,7 +34,9 @@ class BackendServerTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            server = self.start_server(static_dir=root / "dist", schema_path=schema_path)
+            server = self.start_server(
+                static_dir=root / "dist", schema_path=schema_path
+            )
 
             response = urlopen(
                 f"http://127.0.0.1:{server.server_port}/api/default-jsonschema"
@@ -68,7 +70,9 @@ class BackendServerTests(unittest.TestCase):
             schema_path = root / "default.json"
             schema_path.write_text("{}", encoding="utf-8")
 
-            server = self.start_server(static_dir=root / "missing", schema_path=schema_path)
+            server = self.start_server(
+                static_dir=root / "missing", schema_path=schema_path
+            )
 
             with self.assertRaises(Exception) as captured:
                 urlopen(f"http://127.0.0.1:{server.server_port}/")

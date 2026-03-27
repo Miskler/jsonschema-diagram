@@ -6,7 +6,6 @@ from pathlib import Path
 from jsonschema_diagram import (
     DEFAULT_SCHEMA_PATH,
     DEFAULT_SITE_DIR,
-    build_handler,
     create_server,
 )
 

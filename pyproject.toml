@@ -20,3 +20,28 @@ jsonschema-diagram = "jsonschema_diagram.cli:main"
 
 [tool.setuptools]
 packages = ["jsonschema_diagram", "jsonschema_diagram_sphinx", "backend"]
+
+[tool.black]
+line-length = 88
+target-version = ["py310"]
+extend-exclude = '''
+(
+  docs/_build
+  | dist
+)
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 88
+skip_glob = ["docs/_build/*", "dist/*"]
+
+[tool.mypy]
+python_version = "3.10"
+files = ["backend", "jsonschema_diagram", "jsonschema_diagram_sphinx", "tests", "docs/conf.py"]
+exclude = "(docs/_build|dist)/"
+warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = ["docutils", "docutils.*"]
+ignore_missing_imports = true

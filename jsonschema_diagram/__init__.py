@@ -25,4 +25,3 @@ __all__ = [
     "validate_theme_id",
     "write_embed_html",
 ]
-

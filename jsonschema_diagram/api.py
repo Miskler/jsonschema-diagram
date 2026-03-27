@@ -54,7 +54,8 @@ def render_embed_html(
 
     if not template_path.exists():
         raise FileNotFoundError(
-            f"Embed template not found at {template_path}. Run `npm run build:embed` first."
+            "Embed template not found at "
+            f"{template_path}. Run `npm run build:embed` first."
         )
 
     theme = validate_theme_id(default_theme)
@@ -108,7 +109,11 @@ def build_handler(
                 else static_dir / "index.html"
             )
 
-            if request_path in {"", "/"} or not candidate.exists() or candidate.is_dir():
+            if (
+                request_path in {"", "/"}
+                or not candidate.exists()
+                or candidate.is_dir()
+            ):
                 self.path = "/index.html"
             else:
                 self.path = request_path
@@ -128,7 +133,10 @@ def build_handler(
                 {
                     "error": "Frontend build not found.",
                     "expected_static_dir": str(static_dir),
-                    "hint": "Run `npm install` and `npm run build:site` before serving the UI.",
+                    "hint": (
+                        "Run `npm install` and `npm run build:site` "
+                        "before serving the UI."
+                    ),
                 }
             ).encode("utf-8")
             self.send_response(HTTPStatus.SERVICE_UNAVAILABLE)
@@ -150,4 +158,3 @@ def create_server(
         (host, port),
         build_handler(static_dir=static_dir, schema_path=schema_path),
     )
-

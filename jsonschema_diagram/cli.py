@@ -131,4 +131,3 @@ def _run_render_embed(args: argparse.Namespace) -> int:
     output_path.write_text(html, encoding="utf-8")
     print(f"Wrote embed HTML to {output_path}")
     return 0
-
