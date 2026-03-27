@@ -11,7 +11,7 @@
 [![Type checked: mypy](https://img.shields.io/badge/type--checked-mypy-blue)](https://mypy.readthedocs.io/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-**[Documentation](docs/index.rst)** | **[Sphinx Demo](docs/demo.rst)** | **[Python API](docs/python-api.rst)** | **[CLI](docs/cli.rst)** | **[Schema Support](docs/schema-support.rst)**
+**[Documentation](https://miskler.github.io/jsonschema-diagram/getting-started.html)** | **[Sphinx Demo](https://miskler.github.io/jsonschema-diagram/demo.html)** | **[Python API](https://miskler.github.io/jsonschema-diagram/python-api.html)** | **[CLI](https://miskler.github.io/jsonschema-diagram/cli.html)** | **[Schema Support](https://miskler.github.io/jsonschema-diagram/schema-support.html)**
 
 </div>
 
@@ -197,7 +197,7 @@ Current core support includes:
 - `allOf`
 - local `#/...` `$ref`
 
-More detail is documented in [Schema Support](docs/schema-support.rst).
+More detail is documented in [Schema Support](https://miskler.github.io/jsonschema-diagram/schema-support.html).
 
 <h2 align="center">🐍 Python API</h2>
 
@@ -222,7 +222,7 @@ server = create_server(host="127.0.0.1", port=8000)
 server.serve_forever()
 ```
 
-Full reference: [Python API](docs/python-api.rst)
+Full reference: [Python API](https://miskler.github.io/jsonschema-diagram/python-api.html)
 
 <h2 align="center">📚 Sphinx Extension</h2>
 
@@ -249,21 +249,21 @@ Minimal directive:
    :height: 720px
 ```
 
-More detail: [Sphinx Extension](docs/sphinx-extension.rst)
+More detail: [Sphinx Extension](https://miskler.github.io/jsonschema-diagram/sphinx-extension.html)
 
 <h2 align="center">📖 Documentation</h2>
 
 The repository includes a much more detailed Sphinx doc set than the demo page alone.
 
-- [Getting Started](docs/getting-started.rst)
-- [Viewer Modes](docs/viewer-modes.rst)
-- [Python API](docs/python-api.rst)
-- [CLI](docs/cli.rst)
-- [Sphinx Extension](docs/sphinx-extension.rst)
-- [Schema Support](docs/schema-support.rst)
-- [Troubleshooting](docs/troubleshooting.rst)
-- [Development](docs/development.rst)
-- [Demo Page](docs/demo.rst)
+- [Getting Started](https://miskler.github.io/jsonschema-diagram/getting-started.html)
+- [Viewer Modes](https://miskler.github.io/jsonschema-diagram/viewer-modes.html)
+- [Python API](https://miskler.github.io/jsonschema-diagram/python-api.html)
+- [CLI](https://miskler.github.io/jsonschema-diagram/cli.html)
+- [Sphinx Extension](https://miskler.github.io/jsonschema-diagram/sphinx-extension.html)
+- [Schema Support](https://miskler.github.io/jsonschema-diagram/schema-support.html)
+- [Troubleshooting](https://miskler.github.io/jsonschema-diagram/troubleshooting.html)
+- [Development](https://miskler.github.io/jsonschema-diagram/development.html)
+- [Demo Page](https://miskler.github.io/jsonschema-diagram/demo.html)
 
 Build the docs locally:
 

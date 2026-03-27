@@ -12,6 +12,12 @@ license = "MIT"
 authors = [{ name = "OpenAI Codex" }]
 dependencies = ["jinja2>=3.1"]
 
+[project.urls]
+Homepage = "https://miskler.github.io/jsonschema-diagram/"
+Documentation = "https://miskler.github.io/jsonschema-diagram/getting-started.html"
+Repository = "https://github.com/Miskler/jsonschema-diagram"
+Issues = "https://github.com/Miskler/jsonschema-diagram/issues"
+
 [project.optional-dependencies]
 docs = ["sphinx>=8,<9"]
 dev = [
