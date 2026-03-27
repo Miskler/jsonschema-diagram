@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Catalog Entry",
+  "description": "Demo schema used by both the browser app and the Python endpoint.",
+  "type": "object",
+  "required": ["id", "status", "items", "owner"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Stable public identifier."
+    },
+    "status": {
+      "$ref": "#/$defs/status"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/item"
+      }
+    },
+    "owner": {
+      "description": "Owner can be either a single user or a team.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/user"
+        },
+        {
+          "$ref": "#/$defs/team"
+        }
+      ]
+    },
+    "primaryContact": {
+      "$ref": "#/$defs/contact"
+    },
+    "config": {
+      "type": "object",
+      "required": ["mode"],
+      "properties": {
+        "mode": {
+          "const": "compact"
+        },
+        "retentionDays": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "status": {
+      "title": "Status",
+      "type": "string",
+      "enum": ["draft", "review", "published"]
+    },
+    "contact": {
+      "title": "Contact",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "manager": {
+          "$ref": "#/$defs/contact"
+        }
+      }
+    },
+    "user": {
+      "title": "User",
+      "type": "object",
+      "required": ["kind", "name"],
+      "properties": {
+        "kind": {
+          "const": "user"
+        },
+        "name": {
+          "type": "string"
+        },
+        "address": {
+          "$ref": "#/$defs/address"
+        }
+      }
+    },
+    "team": {
+      "title": "Team",
+      "type": "object",
+      "required": ["kind", "slug"],
+      "properties": {
+        "kind": {
+          "const": "team"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "lead": {
+          "$ref": "#/$defs/user"
+        }
+      }
+    },
+    "item": {
+      "title": "Item",
+      "type": "object",
+      "required": ["sku", "title"],
+      "properties": {
+        "sku": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "attributes": {
+          "oneOf": [
+            {
+              "title": "Physical Attributes",
+              "type": "object",
+              "properties": {
+                "weight": {
+                  "type": "number"
+                },
+                "fragile": {
+                  "type": "boolean"
+                }
+              }
+            },
+            {
+              "title": "Virtual Attributes",
+              "type": "string",
+              "enum": ["virtual", "service"]
+            }
+          ]
+        }
+      }
+    },
+    "address": {
+      "title": "Address",
+      "type": "object",
+      "properties": {
+        "city": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "zip": {
+          "type": "string",
+          "pattern": "^[0-9A-Z-]{4,10}$"
+        }
+      }
+    }
+  }
+}
