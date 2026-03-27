@@ -16,6 +16,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@gruhn/regex-utils": "^2.9.1",
     "@xyflow/react": "^12.10.1",
     "ajv": "^8.17.1",
     "elkjs": "^0.11.1",

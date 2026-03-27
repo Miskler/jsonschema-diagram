@@ -8,6 +8,7 @@ export function SchemaNode({ data, id, selected }: NodeProps<FlowNodeData>) {
   const nodeSelected =
     selected || (selection?.kind === "node" && selection.nodeId === id);
   const hasRequiredRows = schemaNode.rows.some((row) => row.required);
+  const isRootNode = schemaNode.pointer === "#";
   const directArrayRow =
     schemaNode.kind === "array" &&
     schemaNode.rows.length === 1 &&
@@ -30,12 +31,14 @@ export function SchemaNode({ data, id, selected }: NodeProps<FlowNodeData>) {
       data-node-id={id}
       onClick={() => onSelectNode(id)}
     >
-      <Handle
-        id={createTargetHandleId(id)}
-        type="target"
-        position={Position.Left}
-        className="schema-node__target"
-      />
+      {!isRootNode ? (
+        <Handle
+          id={createTargetHandleId(id)}
+          type="target"
+          position={Position.Left}
+          className="schema-node__target"
+        />
+      ) : null}
 
       <div className="schema-node__header">
         <div>

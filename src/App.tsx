@@ -87,8 +87,6 @@ export function App() {
         ]);
         setBusy(false);
       }
-
-      setSourceText(text);
     },
   );
 
@@ -153,6 +151,41 @@ export function App() {
     await applySchemaDocument(defaultSchema, defaultSchemaText, "Default schema");
   }
 
+  async function handleInsert() {
+    setErrors([]);
+    setWarnings([]);
+
+    if (!navigator.clipboard?.readText) {
+      setErrors([
+        "Clipboard paste is unavailable in this browser context. Use a secure origin or paste manually.",
+      ]);
+      return;
+    }
+
+    try {
+      const clipboardText = await navigator.clipboard.readText();
+
+      if (!clipboardText.trim()) {
+        setErrors(["Clipboard is empty. Copy a JSON Schema document and try again."]);
+        return;
+      }
+
+      setSourceText(clipboardText);
+    } catch (error) {
+      setErrors([
+        error instanceof Error
+          ? `Unable to read clipboard: ${error.message}`
+          : "Unable to read clipboard.",
+      ]);
+    }
+  }
+
+  function handleDelete() {
+    setErrors([]);
+    setWarnings([]);
+    setSourceText("");
+  }
+
   return (
     <div className="app-shell" data-theme={themeId}>
       <SchemaSourcePanel
@@ -167,6 +200,8 @@ export function App() {
         warnings={warnings}
         onThemeChange={setThemeId}
         onSourceChange={setSourceText}
+        onInsert={() => void handleInsert()}
+        onDelete={handleDelete}
         onApply={() => void handleApply()}
         onReset={() => void handleReset()}
       />

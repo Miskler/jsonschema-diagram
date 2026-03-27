@@ -6,7 +6,7 @@ import {
 } from "@xyflow/react";
 import { useEffect, useRef, useState } from "react";
 
-const LABELS_TO_HIDE = new Set(["field", "placeholder"]);
+const LABELS_TO_HIDE = new Set(["field", "pattern", "index", "rest", "placeholder"]);
 const TARGET_HANDLE_CENTER_OFFSET = 31;
 const LOOP_LEFT_OFFSET = 14;
 const LOOP_RIGHT_PADDING = 42;
