@@ -12,35 +12,63 @@ const siteHtmlPath = resolve(siteDir, "index.html");
 const html = await readFile(siteHtmlPath, "utf8");
 const defaultSchema = JSON.parse(await readFile(schemaPath, "utf8"));
 
-let output = html;
+const bakedRuntimeConfigScript = `<script>window.__JSONSCHEMA_DIAGRAM_CONFIG__ = ${JSON.stringify(
+  {
+    mode: "embed",
+    defaultSchema,
+  },
+)};</script>\n`;
 
-for (const match of [...html.matchAll(/<link[^>]+rel="stylesheet"[^>]+href="([^"]+)"[^>]*>/g)]) {
-  const href = match[1];
-  const original = match[0];
-  const css = await readFile(resolve(siteDir, href.replace(/^\.\//, "")), "utf8");
-  output = output.replace(original, `<style>\n${css}\n</style>`);
+const jinjaRuntimeConfigScript = `<script>
+window.__JSONSCHEMA_DIAGRAM_CONFIG__ = {
+  mode: "embed",
+  defaultSchema:
+    {% if default_schema is defined %}
+      {{ default_schema | tojson }}
+    {% elif default_schema_json is defined %}
+      {{ default_schema_json | safe }}
+    {% else %}
+      ${JSON.stringify(defaultSchema)}
+    {% endif %}
+};
+</script>\n`;
+
+function inlineBuild(runtimeConfigScript) {
+  let output = html;
+
+  return (async () => {
+    for (const match of [...html.matchAll(/<link[^>]+rel="stylesheet"[^>]+href="([^"]+)"[^>]*>/g)]) {
+      const href = match[1];
+      const original = match[0];
+      const css = await readFile(resolve(siteDir, href.replace(/^\.\//, "")), "utf8");
+      output = output.replace(original, `<style>\n${css}\n</style>`);
+    }
+
+    let injectedRuntimeConfig = false;
+    for (const match of [...html.matchAll(/<script[^>]+type="module"[^>]+src="([^"]+)"[^>]*><\/script>/g)]) {
+      const src = match[1];
+      const original = match[0];
+      const js = await readFile(resolve(siteDir, src.replace(/^\.\//, "")), "utf8");
+      const config = injectedRuntimeConfig ? "" : runtimeConfigScript;
+      injectedRuntimeConfig = true;
+      output = output.replace(
+        original,
+        `${config}<script type="module">\n${js}\n</script>`,
+      );
+    }
+
+    return output;
+  })();
 }
 
-let injectedRuntimeConfig = false;
-for (const match of [...html.matchAll(/<script[^>]+type="module"[^>]+src="([^"]+)"[^>]*><\/script>/g)]) {
-  const src = match[1];
-  const original = match[0];
-  const js = await readFile(resolve(siteDir, src.replace(/^\.\//, "")), "utf8");
-  const runtimeConfig = injectedRuntimeConfig
-    ? ""
-    : `<script>window.__JSONSCHEMA_DIAGRAM_CONFIG__ = ${JSON.stringify(
-        {
-          mode: "embed",
-          defaultSchema,
-        },
-      )};</script>\n`;
-  injectedRuntimeConfig = true;
-  output = output.replace(
-    original,
-    `${runtimeConfig}<script type="module">\n${js}\n</script>`,
-  );
-}
+const bakedOutput = await inlineBuild(bakedRuntimeConfigScript);
+const jinjaOutput = await inlineBuild(jinjaRuntimeConfigScript);
 
 await mkdir(embedDir, { recursive: true });
-await writeFile(resolve(embedDir, "index.html"), output, "utf8");
-await writeFile(resolve(embedDir, "jsonschema-diagram.embed.html"), output, "utf8");
+await writeFile(resolve(embedDir, "index.html"), bakedOutput, "utf8");
+await writeFile(resolve(embedDir, "jsonschema-diagram.embed.html"), bakedOutput, "utf8");
+await writeFile(
+  resolve(embedDir, "jsonschema-diagram.embed.jinja2.html"),
+  jinjaOutput,
+  "utf8",
+);

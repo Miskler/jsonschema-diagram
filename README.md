@@ -50,6 +50,17 @@ python3 -m backend.app
 The embed artifact is designed for documentation systems such as `Sphinx`, where
 you want to ship a baked schema with a file that can be opened directly.
 
+`build:embed` now produces two embed variants:
+- `dist/embed/jsonschema-diagram.embed.html`: baked schema, ready to open directly
+- `dist/embed/jsonschema-diagram.embed.jinja2.html`: Jinja2-friendly template
+
+The Jinja2 variant accepts either:
+- `default_schema`: a Python dict-like schema object, rendered through `tojson`
+- `default_schema_json`: a pre-serialized JSON string marked as safe
+
+If neither variable is provided, it falls back to the baked schema from
+`schemas/default.json`.
+
 ## Python backend contract
 
 `GET /api/default-jsonschema` returns the raw JSON document from `schemas/default.json`.
