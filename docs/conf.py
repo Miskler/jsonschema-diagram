@@ -6,6 +6,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from jsonschema_diagram import (  # noqa: E402
+    DEFAULT_EMBED_TEMPLATE_PATH,
+    DEFAULT_SCHEMA_PATH,
+)
+
 project = "JSON Schema Diagram"
 author = "OpenAI Codex"
 extensions = ["jsonschema_diagram_sphinx"]
@@ -66,9 +71,7 @@ html_theme_options = {
     },
 }
 
-jsonschema_diagram_embed_template = str(
-    ROOT / "dist" / "embed" / "jsonschema-diagram.embed.jinja2.html"
-)
-jsonschema_diagram_default_schema_path = str(ROOT / "schemas" / "default.json")
+jsonschema_diagram_embed_template = str(DEFAULT_EMBED_TEMPLATE_PATH)
+jsonschema_diagram_default_schema_path = str(DEFAULT_SCHEMA_PATH)
 jsonschema_diagram_default_height = "760px"
 jsonschema_diagram_default_theme = "slate"

@@ -1,0 +1,35 @@
+- name: bug
+  color: "d73a4a"
+  description: Something is not working
+
+- name: feature
+  color: "a2eeef"
+  description: New feature request
+
+- name: enhancement
+  color: "84b6eb"
+  description: Improvement to existing behavior
+
+- name: documentation
+  color: "0075ca"
+  description: Documentation changes or issues
+
+- name: frontend viewer
+  color: "5319e7"
+  description: React viewer, graph canvas, styling, and UX
+
+- name: python interface
+  color: "1d76db"
+  description: Public Python API and integration helpers
+
+- name: cli
+  color: "0e8a16"
+  description: Command-line interface behavior
+
+- name: sphinx extension
+  color: "fbca04"
+  description: Sphinx directive, templates, and doc integration
+
+- name: ci / build
+  color: "6f42c1"
+  description: CI workflows, release automation, and packaging

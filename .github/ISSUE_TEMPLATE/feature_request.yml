@@ -1,0 +1,33 @@
+name: "Feature request"
+description: Suggest an idea to improve the project
+title: "[Feature] <short title>"
+labels: ["feature", "enhancement"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve the project.
+
+  - type: input
+    id: what
+    attributes:
+      label: What do you want to achieve?
+      placeholder: e.g. Add a new schema keyword visualization
+    validations:
+      required: true
+
+  - type: textarea
+    id: how
+    attributes:
+      label: How should it look or work?
+      description: Describe the desired behavior in plain text.
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context / attachments
+      description: Drag and drop any images, diagrams, or logs here.

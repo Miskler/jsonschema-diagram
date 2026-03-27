@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import unittest
-from pathlib import Path
 from typing import Callable
+
+from jsonschema_diagram import DEFAULT_EMBED_TEMPLATE_PATH
 
 build_iframe_markup: Callable[..., str] | None
 render_embed_document: Callable[..., str] | None
@@ -17,8 +18,7 @@ except ModuleNotFoundError as exc:  # pragma: no cover - depends on optional doc
 else:
     IMPORT_ERROR = None
 
-ROOT = Path(__file__).resolve().parents[1]
-EMBED_TEMPLATE = ROOT / "dist" / "embed" / "jsonschema-diagram.embed.jinja2.html"
+EMBED_TEMPLATE = DEFAULT_EMBED_TEMPLATE_PATH
 
 
 class SphinxExtensionTests(unittest.TestCase):

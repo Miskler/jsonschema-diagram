@@ -8,11 +8,20 @@ from pathlib import Path
 from typing import Any, Type
 from urllib.parse import urlparse
 
-ROOT_DIR = Path(__file__).resolve().parent.parent
-DEFAULT_SCHEMA_PATH = ROOT_DIR / "schemas" / "default.json"
+PACKAGE_DIR = Path(__file__).resolve().parent
+ROOT_DIR = PACKAGE_DIR.parent
+DATA_DIR = PACKAGE_DIR / "data"
+
+DEFAULT_SCHEMA_PATH = (
+    DATA_DIR / "default.json"
+    if (DATA_DIR / "default.json").exists()
+    else ROOT_DIR / "schemas" / "default.json"
+)
 DEFAULT_SITE_DIR = ROOT_DIR / "dist" / "site"
 DEFAULT_EMBED_TEMPLATE_PATH = (
-    ROOT_DIR / "dist" / "embed" / "jsonschema-diagram.embed.jinja2.html"
+    DATA_DIR / "jsonschema-diagram.embed.jinja2.html"
+    if (DATA_DIR / "jsonschema-diagram.embed.jinja2.html").exists()
+    else ROOT_DIR / "dist" / "embed" / "jsonschema-diagram.embed.jinja2.html"
 )
 VALID_THEME_IDS = frozenset({"mono", "slate", "cobalt", "mint", "coral", "gold"})
 

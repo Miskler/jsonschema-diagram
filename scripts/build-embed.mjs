@@ -6,6 +6,7 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(scriptDir, "..");
 const siteDir = resolve(rootDir, "dist", "site");
 const embedDir = resolve(rootDir, "dist", "embed");
+const packageDataDir = resolve(rootDir, "jsonschema_diagram", "data");
 const schemaPath = resolve(rootDir, "schemas", "default.json");
 const siteHtmlPath = resolve(siteDir, "index.html");
 
@@ -73,10 +74,22 @@ const bakedOutput = await inlineBuild(bakedRuntimeConfigScript);
 const jinjaOutput = await inlineBuild(jinjaRuntimeConfigScript);
 
 await mkdir(embedDir, { recursive: true });
+await mkdir(packageDataDir, { recursive: true });
 await writeFile(resolve(embedDir, "index.html"), bakedOutput, "utf8");
 await writeFile(resolve(embedDir, "jsonschema-diagram.embed.html"), bakedOutput, "utf8");
 await writeFile(
   resolve(embedDir, "jsonschema-diagram.embed.jinja2.html"),
+  jinjaOutput,
+  "utf8",
+);
+await writeFile(resolve(packageDataDir, "default.json"), JSON.stringify(defaultSchema, null, 2), "utf8");
+await writeFile(
+  resolve(packageDataDir, "jsonschema-diagram.embed.html"),
+  bakedOutput,
+  "utf8",
+);
+await writeFile(
+  resolve(packageDataDir, "jsonschema-diagram.embed.jinja2.html"),
   jinjaOutput,
   "utf8",
 );

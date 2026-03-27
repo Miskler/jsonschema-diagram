@@ -1,0 +1,32 @@
+name: "Docs issue"
+description: Report inaccurate, missing, or unclear documentation
+title: "[Docs] <short title>"
+labels: ["documentation"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Help keep the documentation sharp.
+
+  - type: input
+    id: url
+    attributes:
+      label: Link to the problematic page
+      placeholder: https://example.com/docs/...
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is broken or unclear?
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots (optional)
+      description: Drag and drop images here if they help illustrate the issue.

@@ -1,0 +1,24 @@
+name: Build Documentation
+description: Build the project documentation site
+outputs:
+  site-path:
+    description: Path to the built site
+    value: ${{ steps.build.outputs.site-path }}
+runs:
+  using: composite
+  steps:
+    - name: Build frontend assets
+      shell: bash
+      run: npm run build
+
+    - name: Build Sphinx documentation
+      shell: bash
+      run: make docs
+
+    - name: Move build to _site
+      id: build
+      shell: bash
+      run: |
+        mkdir -p _site
+        cp -r docs/_build/html/* _site/
+        echo "site-path=_site" >> "$GITHUB_OUTPUT"
