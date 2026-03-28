@@ -2,6 +2,7 @@ PYTHON ?= python3
 PYTHON_CMD := $(if $(wildcard .venv-docs/bin/python),.venv-docs/bin/python,$(PYTHON))
 PIP := $(PYTHON_CMD) -m pip
 PYTHON_TARGETS = backend jsonschema_diagram jsonschema_diagram_sphinx tests docs/conf.py
+PYTHON_DIST_DIR ?= python-dist
 
 .PHONY: install-dev test docs format lint type-check build-package
 
@@ -25,4 +26,4 @@ docs:
 	$(PYTHON_CMD) -m sphinx -E -a -b html docs docs/_build/html
 
 build-package:
-	$(PYTHON_CMD) -m build
+	$(PYTHON_CMD) -m build --outdir $(PYTHON_DIST_DIR)

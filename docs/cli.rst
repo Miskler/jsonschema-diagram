@@ -9,7 +9,7 @@ Installation
 
 .. code-block:: bash
 
-   python3 -m pip install -e .
+   python3 -m pip install jsonschema-diagram
 
 After installation:
 

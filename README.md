@@ -29,11 +29,10 @@
 
 <h3 align="center">Installation</h3>
 
-For normal usage from this repository checkout, install the Python package and use
-the bundled frontend artifacts:
+For normal usage, install the published Python package:
 
 ```bash
-python3 -m pip install -e .
+python3 -m pip install jsonschema-diagram
 ```
 
 You do **not** need `npm install` just to:
@@ -92,6 +91,7 @@ cat schemas/default.json | jsonschema-diagram render-embed --stdin --output diag
 Build the embed artifact and the docs site:
 
 ```bash
+python3 -m pip install jsonschema-diagram
 python3 -m pip install -r docs/requirements.txt
 npm run build:embed
 python3 -m sphinx -E -a -b html docs docs/_build/html

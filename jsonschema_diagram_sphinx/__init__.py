@@ -12,6 +12,7 @@ from sphinx.util.docutils import SphinxDirective
 from sphinx.util.fileutil import copy_asset
 
 from jsonschema_diagram import (
+    __version__,
     DEFAULT_EMBED_TEMPLATE_PATH,
     load_json_schema,
     render_embed_html,
@@ -189,7 +190,7 @@ def setup(app: Sphinx):
     app.add_css_file("jsonschema_diagram_sphinx/jsonschema_diagram_sphinx.css")
 
     return {
-        "version": "0.1.0",
+        "version": __version__,
         "parallel_read_safe": True,
         "parallel_write_safe": True,
     }

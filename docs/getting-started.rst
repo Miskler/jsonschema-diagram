@@ -82,12 +82,12 @@ Relevant outputs:
 Python Package Setup
 --------------------
 
-Install the Python package in editable mode when you want the library API,
-CLI, or Sphinx extension from the same checkout:
+Install the published Python package when you want the library API, CLI, or
+Sphinx extension:
 
 .. code-block:: bash
 
-   python3 -m pip install -e .
+   python3 -m pip install jsonschema-diagram
 
 After that the CLI is available as:
 
@@ -102,6 +102,7 @@ Install docs dependencies:
 
 .. code-block:: bash
 
+   python3 -m pip install jsonschema-diagram
    python3 -m pip install -r docs/requirements.txt
 
 Build the Sphinx demo:
@@ -122,6 +123,6 @@ If you are new to the project, this sequence gives the best overview:
 
 1. Run ``npm install``.
 2. Run ``npm run dev`` and inspect the live viewer.
-3. Run ``python3 -m pip install -e .``.
+3. Run ``python3 -m pip install jsonschema-diagram``.
 4. Try ``jsonschema-diagram render-embed --theme slate --output diagram.html``.
 5. Build the docs and open the Sphinx demo.

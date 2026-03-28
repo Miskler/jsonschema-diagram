@@ -22,13 +22,14 @@ For docs work in this repository:
 
 .. code-block:: bash
 
+   python3 -m pip install jsonschema-diagram
    python3 -m pip install -r docs/requirements.txt
 
 If you want to use the extension as a package entry in another project:
 
 .. code-block:: bash
 
-   python3 -m pip install -e .
+   python3 -m pip install jsonschema-diagram
 
 Basic Configuration
 -------------------

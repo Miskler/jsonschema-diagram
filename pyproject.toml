@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jsonschema-diagram"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Python API, CLI, and Sphinx integration for the JSON Schema Diagram viewer"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -53,6 +53,9 @@ namespaces = false
 [tool.setuptools.package-data]
 jsonschema_diagram = ["data/*.json", "data/*.html"]
 jsonschema_diagram_sphinx = ["_static/*.css"]
+
+[tool.setuptools.dynamic]
+version = { attr = "jsonschema_diagram._version.__version__" }
 
 [tool.black]
 line-length = 88
