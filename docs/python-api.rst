@@ -1,8 +1,9 @@
 Python API
 ==========
 
-The Python package wraps the embed template, the shared schema, and the local
-HTTP server behind a small API that is easy to script.
+The Python package wraps the embed template, site-mode HTML injection, the
+shared schema, and the local HTTP server behind a small API that is easy to
+script.
 
 Installation
 ------------
@@ -23,7 +24,9 @@ The most common imports are:
        load_default_schema,
        load_json_schema,
        render_embed_html,
+       render_site_html,
        write_embed_html,
+       write_site_bundle,
    )
 
 Loading Schemas
@@ -64,6 +67,7 @@ Important parameters:
 - ``schema``: the raw JSON Schema object
 - ``template_path``: optional path to a custom embed template
 - ``default_theme``: optional theme id for embed mode
+- ``default_schema_url``: optional URL used instead of embedding raw schema JSON
 
 Writing Embed Files
 -------------------
@@ -86,6 +90,47 @@ This is useful in:
 - build scripts
 - CI artifact generation
 - release packaging
+
+Rendering Site HTML
+-------------------
+
+Render a site-mode ``index.html`` with runtime config injected into the built
+SPA shell:
+
+.. code-block:: python
+
+   from jsonschema_diagram import render_site_html
+
+   html = render_site_html(
+       {"title": "Example", "type": "object"},
+       default_theme="mint",
+   )
+
+This is the lower-level helper behind site bundle export. It expects the built
+site shell from ``dist/site/index.html`` by default.
+
+Writing Site Bundles
+--------------------
+
+To copy the built site assets and write a configured ``index.html`` in one step:
+
+.. code-block:: python
+
+   from jsonschema_diagram import write_site_bundle
+
+   write_site_bundle(
+       "build/site",
+       {"title": "Release Schema", "type": "object"},
+       default_theme="mint",
+   )
+
+Important parameters:
+
+- ``output_dir``: destination directory for the copied site bundle
+- ``site_dir``: source directory containing the built SPA assets
+- ``schema``: optional raw JSON Schema object to inject
+- ``default_schema_url``: optional URL that site mode should fetch instead
+- ``default_theme``: optional theme id for site mode
 
 Serving The Site
 ----------------
@@ -146,6 +191,7 @@ When To Use The API
 The Python API is best when you need:
 
 - embed HTML generation inside Python tooling
+- site-mode bundle generation for static hosting
 - a local viewer server without wiring your own handler
 - reusable integration from scripts, notebooks, or build steps
 - a stable interface shared by the CLI and Sphinx extension

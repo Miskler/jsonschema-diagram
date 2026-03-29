@@ -1,8 +1,9 @@
 CLI
 ===
 
-The package ships with a small CLI focused on the two most common Python-side
-operations: serving the viewer and rendering embed HTML.
+The package ships with a small CLI focused on the most common Python-side
+operations: serving the viewer, rendering embed HTML, and exporting site-mode
+bundles.
 
 Installation
 ------------
@@ -30,6 +31,7 @@ The CLI currently provides:
 
 - ``serve``
 - ``render-embed``
+- ``render-site``
 
 ``serve``
 ---------
@@ -66,9 +68,29 @@ Useful options:
 
 - ``--schema-path``: load the schema from a JSON file
 - ``--stdin``: read the schema payload from standard input
+- ``--schema-url``: let the viewer fetch the default schema from a URL
 - ``--output`` or ``-o``: output path, or ``-`` for stdout
 - ``--theme``: default embed theme
 - ``--template-path``: custom Jinja2 embed template
+
+``render-site``
+---------------
+
+Copy the built site assets and inject a site-mode runtime config into
+``index.html``:
+
+.. code-block:: bash
+
+   jsonschema-diagram render-site --site-dir dist/site --output build/site
+
+Useful options:
+
+- ``--schema-path``: load the schema from a JSON file and inject it
+- ``--stdin``: read the schema payload from standard input
+- ``--schema-url``: configure site mode to fetch the default schema from a URL
+- ``--output`` or ``-o``: destination directory for the rendered bundle
+- ``--theme``: default site theme
+- ``--site-dir``: source directory with the built SPA assets
 
 Examples
 --------
@@ -100,6 +122,25 @@ Print HTML to stdout:
 
    jsonschema-diagram render-embed --schema-path schema.json --output -
 
+Render a site bundle from a specific schema file:
+
+.. code-block:: bash
+
+   jsonschema-diagram render-site \
+     --schema-path docs/examples/pattern-catalog.json \
+     --theme mint \
+     --site-dir dist/site \
+     --output docs/_build/pattern-catalog-site
+
+Render a site bundle that fetches its schema at runtime:
+
+.. code-block:: bash
+
+   jsonschema-diagram render-site \
+     --schema-url /api/default-jsonschema \
+     --site-dir dist/site \
+     --output build/site
+
 Choosing Between CLI And API
 ----------------------------
 
@@ -108,6 +149,7 @@ Use the CLI when:
 - you are wiring shell scripts
 - you want quick local commands
 - you are building CI artifacts
+- you want to export a ready-to-host site bundle
 - you do not need Python-level control flow
 
 Use the Python API when:

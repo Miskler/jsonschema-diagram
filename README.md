@@ -20,7 +20,7 @@
 - **Interactive schema graph**: render objects, arrays, refs, enums, and combinators as connected cards instead of raw JSON blocks.
 - **Frontend-first architecture**: parsing, graph building, ref resolution, layout, search, and interaction all live in the browser.
 - **Embed-ready output**: generate a self-contained HTML viewer for docs portals, static pages, and Sphinx.
-- **Python integration**: use a small Python API and CLI to serve the site, render embed HTML, and integrate with docs tooling.
+- **Python integration**: use a small Python API and CLI to serve the site, render embed HTML, export site-mode bundles, and integrate with docs tooling.
 - **Sphinx extension included**: embed diagrams from inline JSON, local schema files, or a shared default schema.
 - **Selection and path tooling**: inspect schema paths and JSON paths, copy them in multiple formats, and follow links across the graph.
 - **Theme-aware viewer**: support clean read-only embed mode with configurable default themes.
@@ -39,6 +39,7 @@ You do **not** need `npm install` just to:
 
 - serve the viewer
 - render embed HTML
+- render a site-mode bundle
 - use the Python API
 - use the Sphinx extension
 
@@ -59,13 +60,24 @@ jsonschema-diagram render-embed \
   --output diagram.html
 ```
 
+<h3 align="center">Site Mode Bundle</h3>
+
+```bash
+jsonschema-diagram render-site \
+  --schema-path schemas/default.json \
+  --theme mint \
+  --site-dir dist/site \
+  --output build/site
+```
+
 <h3 align="center">30-Second Python Example</h3>
 
 ```python
-from jsonschema_diagram import load_default_schema, render_embed_html
+from jsonschema_diagram import load_default_schema, render_embed_html, write_site_bundle
 
 schema = load_default_schema()
 html = render_embed_html(schema, default_theme="slate")
+write_site_bundle("build/site", schema, default_theme="mint")
 
 print(html[:200])
 ```
@@ -84,6 +96,13 @@ jsonschema-diagram render-embed \
 
 # Read schema JSON from stdin
 cat schemas/default.json | jsonschema-diagram render-embed --stdin --output diagram.html
+
+# Copy the built SPA and inject site-mode runtime config
+jsonschema-diagram render-site \
+  --schema-path schemas/default.json \
+  --theme mint \
+  --site-dir dist/site \
+  --output build/site
 ```
 
 <h3 align="center">Sphinx Guide</h3>
@@ -175,6 +194,8 @@ The Jinja2 embed variant accepts:
 
 - `default_schema`
 - `default_schema_json`
+- `runtime_config`
+- `runtime_config_json`
 - `default_theme`
 
 If not provided, it falls back to the shared schema in `schemas/default.json` and the default embed theme.
@@ -207,16 +228,24 @@ Public helpers currently include:
 - `load_json_schema(path)`
 - `render_embed_html(schema, default_theme=...)`
 - `write_embed_html(path, schema, default_theme=...)`
+- `render_site_html(schema, default_theme=...)`
+- `write_site_bundle(path, schema, default_theme=...)`
 - `create_server(...)`
 - `build_handler(...)`
 
 Example:
 
 ```python
-from jsonschema_diagram import create_server, load_json_schema, write_embed_html
+from jsonschema_diagram import (
+  create_server,
+  load_json_schema,
+  write_embed_html,
+  write_site_bundle,
+)
 
 schema = load_json_schema("schemas/default.json")
 write_embed_html("build/diagram.html", schema, default_theme="mono")
+write_site_bundle("build/site", schema, default_theme="mint")
 
 server = create_server(host="127.0.0.1", port=8000)
 server.serve_forever()
